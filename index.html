@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Linux CLI Game Lessons</title>
+  <style>
+    :root {
+      --bg: #efe8da;
+      --paper: #fffdf8;
+      --ink: #203040;
+      --muted: #61707f;
+      --accent: #1f6a58;
+      --line: #d8cebc;
+    }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #eadfcd 0%, #f6f3ed 100%);
+    }
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 42px 24px 80px;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 2.6rem;
+    }
+    .lead {
+      max-width: 68ch;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1.05rem;
+    }
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      margin-top: 28px;
+    }
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 14px 28px rgba(40, 30, 20, 0.06);
+    }
+    .tag {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.9rem;
+      letter-spacing: 0.02em;
+    }
+    p {
+      line-height: 1.7;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .meta {
+      margin-top: 14px;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Linux CLI Game Lessons</h1>
+    <p class="lead">Short field-guide style lesson pages for the Linux CLI Game. Each page explains the broken layer, investigation pattern, common mistakes, and what good operational behavior looks like.</p>
+    <section class="grid">
+      
+      <article class="card">
+        <p class="tag">noc-l2 - intermediate</p>
+        <h2>Internal Name Resolution Failure</h2>
+        <p>An internal tool should answer at http://inventory.internal:8088/health, but users say the hostname does not work. You need to prove whether the failure is network reachability, local listening, or name resolution.</p>
+        <p class="meta">Lesson: <a href="./dns-resolution-01.html">dns-resolution-01.html</a></p>
+      </article>
+    
+
+      <article class="card">
+        <p class="tag">sysadmin - intermediate</p>
+        <h2>Log-Driven App Recovery</h2>
+        <p>A lightweight internal reporting app keeps failing its startup check. You are told only that 'the app is broken again'. Use the app log to find the failure reason, fix the config, and prove the startup check is healthy.</p>
+        <p class="meta">Lesson: <a href="./log-recovery-01.html">log-recovery-01.html</a></p>
+      </article>
+    
+
+      <article class="card">
+        <p class="tag">sysadmin - intermediate</p>
+        <h2>Broken Nginx Site Config</h2>
+        <p>A small internal site stopped responding after a config change. The host should serve a simple health page on localhost:8080, but the web stack does not come up cleanly.</p>
+        <p class="meta">Lesson: <a href="./nginx-config-01.html">nginx-config-01.html</a></p>
+      </article>
+    
+
+      <article class="card">
+        <p class="tag">sysadmin - refresh</p>
+        <h2>Shared Directory Lockout</h2>
+        <p>A teammate reports they cannot create a file in a shared operations folder. Your job is to prove whether the problem lives in file mode, directory traversal, ownership, or group access before making a fix.</p>
+        <p class="meta">Lesson: <a href="./permission-denied-01.html">permission-denied-01.html</a></p>
+      </article>
+    
+    </section>
+  </main>
+</body>
+</html>

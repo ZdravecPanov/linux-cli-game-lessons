@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log Recovery Lesson</title>
+  <style>
+    :root {
+      --bg: #f4f2fb;
+      --paper: #fffefe;
+      --ink: #241c3a;
+      --muted: #645c78;
+      --accent: #7d52b9;
+      --line: #ddd7ea;
+      --code: #f3effb;
+    }
+    body { margin: 0; background: linear-gradient(180deg, #ece7fb 0%, #f8f6fd 100%); color: var(--ink); font-family: Verdana, Geneva, sans-serif; }
+    main { max-width: 900px; margin: 0 auto; padding: 42px 24px 72px; }
+    h1 { font-size: 2.3rem; margin-bottom: 10px; }
+    h2 { margin-top: 32px; font-size: 1.3rem; }
+    p, li { line-height: 1.72; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; box-shadow: 0 14px 28px rgba(35, 20, 70, 0.06); }
+    pre { background: var(--code); padding: 14px; border-radius: 12px; overflow: auto; }
+    code, pre { font-family: Consolas, "Courier New", monospace; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Log-Driven App Recovery</h1>
+    <p>This lesson focuses on using logs as the shortest path from a vague symptom to a precise bad config value.</p>
+
+    <section class="card">
+      <h2>What Is Broken</h2>
+      <p>A startup-check script reads config from an environment file. One value is invalid, so the check fails and logs the exact reason.</p>
+    </section>
+
+    <section class="card">
+      <h2>Why Logs Matter Here</h2>
+      <p>Many incidents are not generic "service down" cases. They are specific input failures. The log often tells you which parameter broke the startup path, which saves time and avoids random edits.</p>
+    </section>
+
+    <section class="card">
+      <h2>How To Investigate</h2>
+      <pre><code>tail -n 20 /var/log/linux-game/reporting-app.log
+cat /etc/linux-game/reporting-app.env
+/usr/local/bin/reporting-app-check</code></pre>
+      <p>This sequence lets you see the recent error, inspect the config value behind it, and then rerun the same check after the fix.</p>
+    </section>
+
+    <section class="card">
+      <h2>Common Mistakes</h2>
+      <ul>
+        <li>Changing config before reading the error message</li>
+        <li>Editing multiple settings when only one is broken</li>
+        <li>Skipping the final rerun of the startup check</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Good Operational Pattern</h2>
+      <ol>
+        <li>Read the latest error</li>
+        <li>Confirm the current failure</li>
+        <li>Fix the smallest matching config item</li>
+        <li>Rerun the same check</li>
+        <li>Verify the new healthy log line</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>What Success Looks Like</h2>
+      <ul>
+        <li>The startup check exits successfully</li>
+        <li>The invalid config value is corrected</li>
+        <li>The log now records a healthy startup check</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

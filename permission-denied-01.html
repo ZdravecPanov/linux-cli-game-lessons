@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Permission Denied Lesson</title>
+  <style>
+    :root {
+      --bg: #f5f1e8;
+      --paper: #fffdf8;
+      --ink: #1f2933;
+      --muted: #556170;
+      --accent: #1d6b57;
+      --line: #d9d1c3;
+      --code: #f0ece3;
+    }
+    body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: linear-gradient(180deg, #ece4d4 0%, #f7f4ed 100%); color: var(--ink); }
+    main { max-width: 900px; margin: 0 auto; padding: 40px 24px 64px; }
+    header { margin-bottom: 28px; }
+    h1, h2 { line-height: 1.15; }
+    h1 { font-size: 2.4rem; margin: 0 0 10px; }
+    h2 { margin-top: 34px; font-size: 1.35rem; }
+    p, li { font-size: 1.03rem; line-height: 1.7; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; box-shadow: 0 10px 30px rgba(50, 40, 20, 0.07); margin-top: 18px; }
+    .lead { color: var(--muted); max-width: 68ch; }
+    .callout { border-left: 5px solid var(--accent); padding-left: 16px; }
+    code, pre { font-family: Consolas, "Courier New", monospace; }
+    pre { background: var(--code); padding: 14px; border-radius: 12px; overflow: auto; }
+    .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p>Linux CLI Game Lesson</p>
+      <h1>Shared Directory Lockout</h1>
+      <p class="lead">This lesson explains why a user can be denied access to a directory that looks writable, how to prove the failing layer, and what a safe shared-directory fix looks like.</p>
+    </header>
+
+    <section class="card callout">
+      <h2>What Is Broken</h2>
+      <p>The user is in the correct group and the target directory may even look group-writable, but one parent directory blocks traversal. On Linux, you do not just need write permission on the final directory. You also need execute permission on every parent directory in the path.</p>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2>How It Works</h2>
+        <p>For directories, permission bits mean something different than for files:</p>
+        <ul>
+          <li><code>r</code> means you can list names</li>
+          <li><code>w</code> means you can create, rename, or remove entries</li>
+          <li><code>x</code> means you can traverse into the directory</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>What To Prove</h2>
+        <ul>
+          <li>Which user is failing</li>
+          <li>Which groups that user belongs to</li>
+          <li>Which parent path element blocks traversal</li>
+          <li>Whether the final target is actually the real problem</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>How To Investigate</h2>
+      <p>Use identity checks and path-aware inspection, not only a quick <code>ls</code> on the target:</p>
+      <pre><code>id
+namei -l /tmp/linux-game/shared/ops
+ls -ld /tmp/linux-game/shared /tmp/linux-game/shared/ops</code></pre>
+      <p><code>namei -l</code> is especially useful because it shows every directory in the path and its permissions.</p>
+    </section>
+
+    <section class="card">
+      <h2>Common Mistakes</h2>
+      <ul>
+        <li>Jumping straight to <code>chmod 777</code></li>
+        <li>Checking only the target directory</li>
+        <li>Assuming group membership alone is enough</li>
+        <li>Ignoring traversal on parent directories</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Good Operational Pattern</h2>
+      <p>For shared admin folders, prefer a dedicated group, controlled group-write, and setgid on the shared directory. Fix the minimum layer that restores the intended access model. Do not widen permissions more than the scenario requires.</p>
+    </section>
+
+    <section class="card">
+      <h2>What Success Looks Like</h2>
+      <ul>
+        <li>The affected user can create a file in the target directory</li>
+        <li>The directory is not made world-writable</li>
+        <li>You can explain exactly which parent permission caused the failure</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

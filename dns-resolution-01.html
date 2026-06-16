@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DNS Resolution Lesson</title>
+  <style>
+    :root {
+      --bg: #eef5f3;
+      --paper: #fbfffe;
+      --ink: #17313a;
+      --muted: #58727a;
+      --accent: #1f7a6c;
+      --line: #cfe1dc;
+      --code: #edf6f4;
+    }
+    body { margin: 0; background: linear-gradient(180deg, #e5f1ed 0%, #f6fbfa 100%); color: var(--ink); font-family: "Trebuchet MS", Arial, sans-serif; }
+    main { max-width: 900px; margin: 0 auto; padding: 42px 24px 72px; }
+    h1 { font-size: 2.3rem; margin-bottom: 10px; }
+    h2 { margin-top: 32px; font-size: 1.3rem; }
+    p, li { line-height: 1.72; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; box-shadow: 0 14px 28px rgba(20, 50, 45, 0.06); }
+    pre { background: var(--code); padding: 14px; border-radius: 12px; overflow: auto; }
+    code, pre { font-family: Consolas, "Courier New", monospace; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Internal Name Resolution Failure</h1>
+    <p>This lesson teaches a layered troubleshooting approach for hostname problems: prove the app works by IP, then isolate resolver failure before changing anything else.</p>
+
+    <section class="card">
+      <h2>What Is Broken</h2>
+      <p>The service itself is healthy on localhost, but the internal hostname does not resolve. This is not an app outage. It is a name-resolution problem.</p>
+    </section>
+
+    <section class="card">
+      <h2>How To Think About It</h2>
+      <p>When a hostname fails, split the problem into layers:</p>
+      <ol>
+        <li>Is something listening?</li>
+        <li>Does the endpoint work by IP?</li>
+        <li>Does the name resolve?</li>
+        <li>Does the same request work by hostname after the fix?</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Useful Commands</h2>
+      <pre><code>ss -lntp | grep 8088
+curl http://127.0.0.1:8088/health
+getent hosts inventory.internal
+curl http://inventory.internal:8088/health</code></pre>
+      <p><code>getent hosts</code> is especially useful because it uses the system resolver path instead of bypassing it.</p>
+    </section>
+
+    <section class="card">
+      <h2>Common Mistakes</h2>
+      <ul>
+        <li>Changing the app when localhost already works</li>
+        <li>Assuming "DNS issue" without proving the app is healthy by IP</li>
+        <li>Skipping a final hostname-based curl after the fix</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Good Operational Pattern</h2>
+      <p>Always narrow the fault domain first. If IP works and the hostname fails, the service and port are already mostly exonerated. Fix the smallest resolver layer that restores the expected name.</p>
+    </section>
+
+    <section class="card">
+      <h2>What Success Looks Like</h2>
+      <ul>
+        <li>The service responds on <code>127.0.0.1:8088</code></li>
+        <li><code>inventory.internal</code> resolves locally</li>
+        <li>The hostname-based health check works end to end</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
