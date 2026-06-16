@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Log Recovery Lesson</title>
+  <title>Log-Driven App Recovery</title>
   <style>
     :root {
       --bg: #f4f2fb;
@@ -15,65 +15,96 @@
       --code: #f3effb;
     }
     body { margin: 0; background: linear-gradient(180deg, #ece7fb 0%, #f8f6fd 100%); color: var(--ink); font-family: Verdana, Geneva, sans-serif; }
-    main { max-width: 900px; margin: 0 auto; padding: 42px 24px 72px; }
+    main { max-width: 920px; margin: 0 auto; padding: 42px 24px 72px; }
     h1 { font-size: 2.3rem; margin-bottom: 10px; }
     h2 { margin-top: 32px; font-size: 1.3rem; }
     p, li { line-height: 1.72; }
     .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; box-shadow: 0 14px 28px rgba(35, 20, 70, 0.06); }
     pre { background: var(--code); padding: 14px; border-radius: 12px; overflow: auto; }
     code, pre { font-family: Consolas, "Courier New", monospace; }
+    .hero { max-width: 72ch; color: var(--muted); }
   </style>
 </head>
 <body>
   <main>
     <h1>Log-Driven App Recovery</h1>
-    <p>This lesson focuses on using logs as the shortest path from a vague symptom to a precise bad config value.</p>
+    <p class="hero">This lesson is a practical guide to using logs as your shortest path from a vague application symptom to one exact broken config value. The goal is to learn how logs reduce guessing and keep your fix small and evidence-based.</p>
 
     <section class="card">
-      <h2>What Is Broken</h2>
-      <p>A startup-check script reads config from an environment file. One value is invalid, so the check fails and logs the exact reason.</p>
-    </section>
-
-    <section class="card">
-      <h2>Why Logs Matter Here</h2>
-      <p>Many incidents are not generic "service down" cases. They are specific input failures. The log often tells you which parameter broke the startup path, which saves time and avoids random edits.</p>
-    </section>
-
-    <section class="card">
-      <h2>How To Investigate</h2>
-      <pre><code>tail -n 20 /var/log/linux-game/reporting-app.log
-cat /etc/linux-game/reporting-app.env
-/usr/local/bin/reporting-app-check</code></pre>
-      <p>This sequence lets you see the recent error, inspect the config value behind it, and then rerun the same check after the fix.</p>
-    </section>
-
-    <section class="card">
-      <h2>Common Mistakes</h2>
+      <h2>Mission Goal</h2>
       <ul>
-        <li>Changing config before reading the error message</li>
-        <li>Editing multiple settings when only one is broken</li>
-        <li>Skipping the final rerun of the startup check</li>
+        <li>Read the current failure from the log before editing config</li>
+        <li>Find the exact bad setting behind the startup failure</li>
+        <li>Fix only the broken value</li>
+        <li>Rerun the same check and verify healthy log output</li>
       </ul>
     </section>
 
     <section class="card">
-      <h2>Good Operational Pattern</h2>
-      <ol>
-        <li>Read the latest error</li>
-        <li>Confirm the current failure</li>
-        <li>Fix the smallest matching config item</li>
-        <li>Rerun the same check</li>
-        <li>Verify the new healthy log line</li>
-      </ol>
+      <h2>What Layer This Is</h2>
+      <p>This mission lives in the application startup and logging layer. The main question is not “is the app down?” but “what exact input caused the startup path to fail?”</p>
     </section>
 
     <section class="card">
-      <h2>What Success Looks Like</h2>
+      <h2>What We Are Using and Why</h2>
+      <p>The main tools are a log file, an environment file, and a startup-check script.</p>
       <ul>
-        <li>The startup check exits successfully</li>
-        <li>The invalid config value is corrected</li>
-        <li>The log now records a healthy startup check</li>
+        <li><code>tail</code> shows the most recent failure lines</li>
+        <li><code>cat</code> lets you inspect the relevant config source</li>
+        <li>rerunning the same startup check proves whether the repair worked</li>
       </ul>
+      <p>Administrators use this loop because the log often points directly to the bad parameter, which saves time and avoids random edits.</p>
+    </section>
+
+    <section class="card">
+      <h2>How It Works in Real Operations</h2>
+      <p>Many outages are not generic “service down” incidents. They are specific input failures: bad ports, wrong paths, invalid values, unreadable files, or missing dependencies. The log is often the fastest way to narrow that down to one exact cause.</p>
+    </section>
+
+    <section class="card">
+      <h2>How To Use It in Practice</h2>
+      <p>A strong admin workflow here is:</p>
+      <ul>
+        <li>Read the latest error lines before touching config</li>
+        <li>Match the error message to the most likely parameter or setting</li>
+        <li>Inspect the config source that owns that setting</li>
+        <li>Fix only the value that matches the evidence</li>
+        <li>Rerun the same startup check and verify the new log result</li>
+      </ul>
+      <p>What matters is the reasoning: use the log to shrink the search space, then rerun the same failing path after the fix.</p>
+    </section>
+
+    <section class="card">
+      <h2>What Good Evidence Looks Like</h2>
+      <ul>
+        <li>The latest log clearly names the failing parameter or input</li>
+        <li>The config source confirms that bad value exists</li>
+        <li>The same startup check succeeds after the repair</li>
+        <li>The log records a new healthy outcome instead of the old error</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Not To Do</h2>
+      <ul>
+        <li>Do not edit config before reading the current error</li>
+        <li>Do not change several values when the log points to one</li>
+        <li>Do not claim success without rerunning the same check</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Common Problems Administrators See</h2>
+      <ul>
+        <li>A config value is present but invalid for the application</li>
+        <li>The operator guesses based on symptom instead of reading the log</li>
+        <li>The fix is too broad because the original error was never isolated</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What You Should Learn From This Mission</h2>
+      <p>The real lesson is to let the log move you from vague symptom to precise failing parameter. This is one of the most valuable habits in operational troubleshooting.</p>
     </section>
   </main>
 </body>

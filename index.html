@@ -85,6 +85,14 @@
 
       <article class="card">
         <p class="tag">sysadmin - intermediate</p>
+        <h2>Find Failure in the Journal</h2>
+        <p>A metrics forwarder service stopped after a cleanup job. The service manager confirms the unit is failing, but the actual reason is buried in the journal. Read the journal, find the startup blocker, repair it, and verify the unit is healthy again.</p>
+        <p class="meta">Lesson: <a href="./journalctl-01.html">journalctl-01.html</a></p>
+      </article>
+    
+
+      <article class="card">
+        <p class="tag">sysadmin - intermediate</p>
         <h2>Log-Driven App Recovery</h2>
         <p>A lightweight internal reporting app keeps failing its startup check. You are told only that 'the app is broken again'. Use the app log to find the failure reason, fix the config, and prove the startup check is healthy.</p>
         <p class="meta">Lesson: <a href="./log-recovery-01.html">log-recovery-01.html</a></p>
@@ -104,6 +112,14 @@
         <h2>Shared Directory Lockout</h2>
         <p>A teammate reports they cannot create a file in a shared operations folder. Your job is to prove whether the problem lives in file mode, directory traversal, ownership, or group access before making a fix.</p>
         <p class="meta">Lesson: <a href="./permission-denied-01.html">permission-denied-01.html</a></p>
+      </article>
+    
+
+      <article class="card">
+        <p class="tag">sysadmin - intermediate</p>
+        <h2>Service Fails to Start</h2>
+        <p>A teammate says the report sync service never came back after a maintenance change. Use service status to identify why the unit is failing, fix the problem, and verify the service is healthy again.</p>
+        <p class="meta">Lesson: <a href="./systemd-status-01.html">systemd-status-01.html</a></p>
       </article>
     
     </section>

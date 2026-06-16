@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Service Fails to Start</title>
+  <style>
+    :root {
+      --bg: #eef1e6;
+      --paper: #fcfdf8;
+      --ink: #172028;
+      --muted: #5c6a63;
+      --accent: #3f6b47;
+      --line: #d7ddd0;
+      --code: #edf2e6;
+    }
+    body { margin: 0; background: radial-gradient(circle at top left, #dfead8, #f6f7f1 58%); color: var(--ink); font-family: "Segoe UI", Tahoma, sans-serif; }
+    main { max-width: 920px; margin: 0 auto; padding: 40px 24px 72px; }
+    h1 { font-size: 2.4rem; margin-bottom: 12px; }
+    h2 { margin-top: 34px; font-size: 1.3rem; }
+    p, li { line-height: 1.72; font-size: 1rem; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; box-shadow: 0 14px 28px rgba(24, 32, 40, 0.06); }
+    code, pre { font-family: Consolas, "Courier New", monospace; }
+    pre { background: var(--code); padding: 14px; border-radius: 12px; overflow: auto; }
+    .hero { max-width: 72ch; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Service Fails to Start</h1>
+    <p class="hero">This lesson is a practical guide to reading service state through systemd. The goal is to understand what <code>systemctl status</code> really shows, how the <code>ExecStart</code> path helps narrow the failure, and when elevated privileges are needed for the repair.</p>
+
+    <section class="card">
+      <h2>Mission Goal</h2>
+      <ul>
+        <li>Confirm the service is failed through the service manager</li>
+        <li>Interpret the failing <code>ExecStart</code> path correctly</li>
+        <li>Repair the specific filesystem condition blocking startup</li>
+        <li>Restart and verify the service is active and healthy again</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Layer This Is</h2>
+      <p>This mission lives in the service-management layer. The application may be simple, but the service manager is the first operational truth source: did the unit start, fail, or never execute correctly?</p>
+    </section>
+
+    <section class="card">
+      <h2>What We Are Using and Why</h2>
+      <p>The main tools are <code>systemctl status</code>, <code>systemctl is-active</code>, filesystem inspection, and a health check.</p>
+      <ul>
+        <li><code>systemctl status</code> shows the unit state and last execution details</li>
+        <li><code>systemctl is-active</code> gives a quick state check</li>
+        <li>filesystem inspection verifies whether the <code>ExecStart</code> target is usable</li>
+        <li>the health check proves the service is not only started, but healthy</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>How It Works in Real Operations</h2>
+      <p>A failed unit is often the start of the investigation, not the end of it. The important clue may be the exit status, the path that failed to execute, or the mismatch between the service definition and the real file on disk.</p>
+      <p>This is why administrators use the service manager first: it narrows the search space before they touch files.</p>
+    </section>
+
+    <section class="card">
+      <h2>How To Use It in Practice</h2>
+      <p>A strong admin workflow here is:</p>
+      <ul>
+        <li>Confirm the unit is failed and note the execution details</li>
+        <li>Inspect the path systemd tried to execute</li>
+        <li>Verify whether that file exists and whether it is actually executable</li>
+        <li>Use privileged repair only after the failing path is clear</li>
+        <li>Restart the unit and verify the state changed to active</li>
+      </ul>
+      <p>What matters is the reasoning: read the service manager first, then inspect the exact object it points to.</p>
+    </section>
+
+    <section class="card">
+      <h2>What Good Evidence Looks Like</h2>
+      <ul>
+        <li>The unit state is confirmed before any chmod or file changes</li>
+        <li>The failing <code>ExecStart</code> path is verified on disk</li>
+        <li>The service becomes active only after that path is repaired</li>
+        <li>The health check passes after the restart</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Not To Do</h2>
+      <ul>
+        <li>Do not run random chmod commands before reading the unit state</li>
+        <li>Do not assume config is broken if the service manager points to an executable problem</li>
+        <li>Do not stop after restart without checking whether the unit is active</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Common Problems Administrators See</h2>
+      <ul>
+        <li>The <code>ExecStart</code> file exists but is not executable</li>
+        <li>The path is wrong or the file is missing</li>
+        <li>The service is restarted repeatedly without anyone reading the failure details</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What You Should Learn From This Mission</h2>
+      <p>The real lesson is to use the service manager as evidence, not just as a restart button. Good troubleshooting starts by reading what the unit is telling you.</p>
+    </section>
+  </main>
+</body>
+</html>

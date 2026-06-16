@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nginx Config Lesson</title>
+  <title>Broken Nginx Site Config</title>
   <style>
     :root {
       --bg: #f3efe7;
@@ -18,71 +18,99 @@
     main { max-width: 920px; margin: 0 auto; padding: 40px 24px 72px; }
     h1 { font-size: 2.4rem; margin-bottom: 12px; }
     h2 { margin-top: 34px; font-size: 1.3rem; }
-    p, li { line-height: 1.7; font-size: 1rem; }
+    p, li { line-height: 1.72; font-size: 1rem; }
     .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; box-shadow: 0 14px 28px rgba(40, 30, 20, 0.06); }
     code, pre { font-family: Consolas, "Courier New", monospace; }
     pre { background: var(--code); padding: 14px; border-radius: 12px; overflow: auto; }
-    .hero { max-width: 70ch; color: var(--muted); }
+    .hero { max-width: 72ch; color: var(--muted); }
   </style>
 </head>
 <body>
   <main>
     <h1>Broken Nginx Site Config</h1>
-    <p class="hero">This lesson covers the right troubleshooting order for a config-driven web service: validate syntax, inspect the exact file and line, confirm listening state, and verify the endpoint over HTTP.</p>
+    <p class="hero">This lesson is a practical guide to config-driven web service troubleshooting. The goal is to understand what Nginx is responsible for, why config validation comes first, and how to separate syntax, listener state, and HTTP behavior.</p>
 
     <section class="card">
-      <h2>What Is Broken</h2>
-      <p>Nginx has an active site config that contains a syntax error. Until the config validates, the service cannot start cleanly and there is no point guessing about ports, firewalls, or upstream behavior.</p>
-    </section>
-
-    <section class="card">
-      <h2>How Nginx Failure Usually Shows Up</h2>
+      <h2>Mission Goal</h2>
       <ul>
-        <li><code>nginx -t</code> fails with a file and line number</li>
-        <li>No process is listening on the expected port</li>
-        <li><code>curl</code> to the endpoint fails or returns nothing</li>
-      </ul>
-      <p>The config test is usually your highest-signal first step.</p>
-    </section>
-
-    <section class="card">
-      <h2>How To Investigate</h2>
-      <pre><code>nginx -t
-cat /etc/nginx/conf.d/linux-game.conf
-ss -lntp | grep 8080
-curl http://127.0.0.1:8080/</code></pre>
-      <p>This sequence keeps the troubleshooting layered: syntax, config content, listener state, then actual HTTP response.</p>
-    </section>
-
-    <section class="card">
-      <h2>Common Mistakes</h2>
-      <ul>
-        <li>Editing random config files before reading the error line</li>
-        <li>Trying a restart before proving the config is valid</li>
-        <li>Confusing "process started" with "service is healthy"</li>
-        <li>Stopping after the listener appears without testing with <code>curl</code></li>
+        <li>Confirm whether the problem is in config syntax or not</li>
+        <li>Repair the actual Nginx config issue</li>
+        <li>Prove the service is listening on the expected port</li>
+        <li>Verify the site returns the expected response</li>
       </ul>
     </section>
 
     <section class="card">
-      <h2>Good Operational Pattern</h2>
-      <p>For config-driven services, think in this order:</p>
+      <h2>What Layer This Is</h2>
+      <p>This mission lives in the web-service and configuration layer. The key question is not only whether the process exists, but whether the service can parse its config, listen correctly, and serve the expected content.</p>
+    </section>
+
+    <section class="card">
+      <h2>What We Are Using and Why</h2>
+      <p>Nginx is a web server and reverse proxy. The main tools here are <code>nginx -t</code>, <code>ss</code>, and <code>curl</code>.</p>
+      <ul>
+        <li><code>nginx -t</code> validates config syntax</li>
+        <li><code>ss</code> shows whether a listener exists on the expected port</li>
+        <li><code>curl</code> verifies the actual HTTP behavior, not just process state</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>How It Works in Real Operations</h2>
+      <p>For config-driven services, syntax errors break everything upstream of runtime verification. If the config is invalid, there is no point guessing about firewalls, upstream apps, or browser behavior yet.</p>
+      <p>A strong troubleshooting order is:</p>
       <ol>
         <li>Validate the config</li>
         <li>Fix the exact error reported</li>
-        <li>Retest syntax</li>
-        <li>Start or reload the service</li>
-        <li>Verify the actual endpoint</li>
+        <li>Confirm the service is listening</li>
+        <li>Verify the endpoint over HTTP</li>
       </ol>
     </section>
 
     <section class="card">
-      <h2>What Success Looks Like</h2>
+      <h2>How To Use It in Practice</h2>
+      <p>A strong admin workflow here is:</p>
       <ul>
-        <li><code>nginx -t</code> succeeds</li>
-        <li>Nginx listens on <code>8080</code></li>
-        <li><code>curl http://127.0.0.1:8080/</code> returns the expected page body</li>
+        <li>Start with syntax validation instead of random edits</li>
+        <li>Read the exact file and line number of the reported error</li>
+        <li>Inspect the config that is actually loaded</li>
+        <li>Check whether the service is listening only after validation succeeds</li>
+        <li>Run a final HTTP test so you prove the service is usable</li>
       </ul>
+      <p>What matters is the reasoning: syntax first, listener second, endpoint third.</p>
+    </section>
+
+    <section class="card">
+      <h2>What Good Evidence Looks Like</h2>
+      <ul>
+        <li>The config validates cleanly before you claim success</li>
+        <li>The service is listening on the expected port</li>
+        <li>The endpoint returns the expected body, not just a TCP listener</li>
+        <li>The fix matches the exact syntax or config problem found</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Not To Do</h2>
+      <ul>
+        <li>Do not start by blaming networking before syntax validation</li>
+        <li>Do not edit random files before reading the exact error</li>
+        <li>Do not stop after the listener appears without testing HTTP</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Common Problems Administrators See</h2>
+      <ul>
+        <li>A missing semicolon or invalid directive blocks startup</li>
+        <li>The process starts, but does not listen on the expected port</li>
+        <li>The port is open, but the actual response is still wrong</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What You Should Learn From This Mission</h2>
+      <p>The real lesson is to separate “config valid”, “service listening”, and “endpoint healthy”. They sound similar under pressure, but they are not the same thing operationally.</p>
     </section>
   </main>
 </body>

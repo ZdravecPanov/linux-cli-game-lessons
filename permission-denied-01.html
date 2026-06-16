@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Permission Denied Lesson</title>
+  <title>Shared Directory Lockout</title>
   <style>
     :root {
       --bg: #f5f1e8;
@@ -15,85 +15,102 @@
       --code: #f0ece3;
     }
     body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: linear-gradient(180deg, #ece4d4 0%, #f7f4ed 100%); color: var(--ink); }
-    main { max-width: 900px; margin: 0 auto; padding: 40px 24px 64px; }
-    header { margin-bottom: 28px; }
-    h1, h2 { line-height: 1.15; }
+    main { max-width: 920px; margin: 0 auto; padding: 40px 24px 72px; }
     h1 { font-size: 2.4rem; margin: 0 0 10px; }
-    h2 { margin-top: 34px; font-size: 1.35rem; }
-    p, li { font-size: 1.03rem; line-height: 1.7; }
-    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; box-shadow: 0 10px 30px rgba(50, 40, 20, 0.07); margin-top: 18px; }
-    .lead { color: var(--muted); max-width: 68ch; }
-    .callout { border-left: 5px solid var(--accent); padding-left: 16px; }
+    h2 { margin-top: 32px; font-size: 1.3rem; }
+    p, li { font-size: 1.02rem; line-height: 1.72; }
+    .lead { color: var(--muted); max-width: 72ch; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; box-shadow: 0 10px 30px rgba(50, 40, 20, 0.07); }
     code, pre { font-family: Consolas, "Courier New", monospace; }
     pre { background: var(--code); padding: 14px; border-radius: 12px; overflow: auto; }
-    .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
   </style>
 </head>
 <body>
   <main>
-    <header>
-      <p>Linux CLI Game Lesson</p>
-      <h1>Shared Directory Lockout</h1>
-      <p class="lead">This lesson explains why a user can be denied access to a directory that looks writable, how to prove the failing layer, and what a safe shared-directory fix looks like.</p>
-    </header>
-
-    <section class="card callout">
-      <h2>What Is Broken</h2>
-      <p>The user is in the correct group and the target directory may even look group-writable, but one parent directory blocks traversal. On Linux, you do not just need write permission on the final directory. You also need execute permission on every parent directory in the path.</p>
-    </section>
-
-    <section class="grid">
-      <div class="card">
-        <h2>How It Works</h2>
-        <p>For directories, permission bits mean something different than for files:</p>
-        <ul>
-          <li><code>r</code> means you can list names</li>
-          <li><code>w</code> means you can create, rename, or remove entries</li>
-          <li><code>x</code> means you can traverse into the directory</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h2>What To Prove</h2>
-        <ul>
-          <li>Which user is failing</li>
-          <li>Which groups that user belongs to</li>
-          <li>Which parent path element blocks traversal</li>
-          <li>Whether the final target is actually the real problem</li>
-        </ul>
-      </div>
-    </section>
+    <h1>Shared Directory Lockout</h1>
+    <p class="lead">This lesson is a small practical guide to Linux directory permissions. The goal is to understand why a directory can look writable and still fail, how parent traversal works, and how an administrator proves the failing layer before changing permissions.</p>
 
     <section class="card">
-      <h2>How To Investigate</h2>
-      <p>Use identity checks and path-aware inspection, not only a quick <code>ls</code> on the target:</p>
-      <pre><code>id
-namei -l /tmp/linux-game/shared/ops
-ls -ld /tmp/linux-game/shared /tmp/linux-game/shared/ops</code></pre>
-      <p><code>namei -l</code> is especially useful because it shows every directory in the path and its permissions.</p>
-    </section>
-
-    <section class="card">
-      <h2>Common Mistakes</h2>
+      <h2>Mission Goal</h2>
       <ul>
-        <li>Jumping straight to <code>chmod 777</code></li>
-        <li>Checking only the target directory</li>
-        <li>Assuming group membership alone is enough</li>
-        <li>Ignoring traversal on parent directories</li>
+        <li>Confirm which user is failing</li>
+        <li>Inspect the full path, not only the final target directory</li>
+        <li>Find the exact permission layer blocking access</li>
+        <li>Restore safe shared-write behavior without opening permissions too broadly</li>
       </ul>
     </section>
 
     <section class="card">
-      <h2>Good Operational Pattern</h2>
-      <p>For shared admin folders, prefer a dedicated group, controlled group-write, and setgid on the shared directory. Fix the minimum layer that restores the intended access model. Do not widen permissions more than the scenario requires.</p>
+      <h2>What Layer This Is</h2>
+      <p>This mission lives in the filesystem access-control layer. The application is not the problem here. The real problem is how Linux evaluates identity, groups, directory traversal, and write permissions across the full path.</p>
     </section>
 
     <section class="card">
-      <h2>What Success Looks Like</h2>
+      <h2>What We Are Using and Why</h2>
+      <p>The main tools are <code>id</code>, <code>namei -l</code>, and <code>ls -ld</code>.</p>
       <ul>
-        <li>The affected user can create a file in the target directory</li>
-        <li>The directory is not made world-writable</li>
-        <li>You can explain exactly which parent permission caused the failure</li>
+        <li><code>id</code> tells you who the current user really is and which groups they belong to</li>
+        <li><code>namei -l</code> shows every element in a path with ownership and permissions</li>
+        <li><code>ls -ld</code> lets you inspect specific directories directly</li>
       </ul>
+      <p>An administrator uses these tools together because access failures often come from the path around the target, not only from the target itself.</p>
+    </section>
+
+    <section class="card">
+      <h2>How It Works in Real Operations</h2>
+      <p>For directories, Linux permission bits mean something very specific:</p>
+      <ul>
+        <li><code>r</code> lets you list names</li>
+        <li><code>w</code> lets you create, remove, or rename entries</li>
+        <li><code>x</code> lets you traverse into the directory</li>
+      </ul>
+      <p>A user can fail to create a file even if the final directory looks writable, because Linux also requires execute permission on every parent directory in the path.</p>
+    </section>
+
+    <section class="card">
+      <h2>How To Use It in Practice</h2>
+      <p>A strong admin workflow here is:</p>
+      <ul>
+        <li>Confirm the exact user identity first</li>
+        <li>Inspect the full directory chain, not only the target</li>
+        <li>Compare group ownership and execute bits on every parent path element</li>
+        <li>Prove whether the final target is truly the failing layer</li>
+        <li>Repair only the permission model needed for the intended shared access</li>
+      </ul>
+      <p>What matters is the reasoning: identify the actor, inspect the path, isolate the failing layer, then fix only that layer.</p>
+    </section>
+
+    <section class="card">
+      <h2>What Good Evidence Looks Like</h2>
+      <ul>
+        <li>The user identity and group membership are confirmed before the fix</li>
+        <li>The full path shows exactly where traversal breaks</li>
+        <li>The final directory is not changed blindly before path evidence is clear</li>
+        <li>The user can create the file after the minimal safe fix</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Not To Do</h2>
+      <ul>
+        <li>Do not jump straight to <code>chmod 777</code></li>
+        <li>Do not inspect only the target directory</li>
+        <li>Do not assume group membership alone guarantees access</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Common Problems Administrators See</h2>
+      <ul>
+        <li>The target is group-writable, but a parent directory blocks traversal</li>
+        <li>The right group is present, but execute permission is missing on a parent path</li>
+        <li>The fix widens permissions too far and breaks the shared-access model</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What You Should Learn From This Mission</h2>
+      <p>The real lesson is to ask a better operational question. Not only “what are the permissions on the target?” but “can this exact identity traverse every parent and write at the final layer?”</p>
     </section>
   </main>
 </body>
