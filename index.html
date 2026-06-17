@@ -77,6 +77,22 @@
       
       <article class="card">
         <p class="tag">sysadmin - intermediate</p>
+        <h2>Missing ACL Access Grant</h2>
+        <p>An analyst should have read access to one sensitive report without making the whole report world-readable. Standard mode bits are not the intended solution here. Use ACL-style evidence, grant the right access, and verify the analyst can read only through the intended narrow fix.</p>
+        <p class="meta">Lesson: <a href="./acl-access-01.html">acl-access-01.html</a></p>
+      </article>
+    
+
+      <article class="card">
+        <p class="tag">sysadmin - intermediate</p>
+        <h2>Cron Job Fails on Schedule</h2>
+        <p>An internal report-digest task is supposed to run from cron, but the scheduled run keeps failing while the script itself exists on disk. Prove why the job fails only in scheduled execution, repair the cron job safely, and verify the scheduled run becomes healthy.</p>
+        <p class="meta">Lesson: <a href="./cron-failure-01.html">cron-failure-01.html</a></p>
+      </article>
+    
+
+      <article class="card">
+        <p class="tag">sysadmin - intermediate</p>
         <h2>Filesystem Running Out of Space</h2>
         <p>A storage alert says the operations volume is almost full and a cache maintenance check is failing. Prove where the space is going, remove only the safe obsolete data, and verify the volume health check passes again.</p>
         <p class="meta">Lesson: <a href="./disk-space-01.html">disk-space-01.html</a></p>
@@ -88,6 +104,30 @@
         <h2>Internal Name Resolution Failure</h2>
         <p>An internal tool should answer at http://inventory.internal:8088/health, but users say the hostname does not work. You need to prove whether the failure is network reachability, local listening, or name resolution.</p>
         <p class="meta">Lesson: <a href="./dns-resolution-01.html">dns-resolution-01.html</a></p>
+      </article>
+    
+
+      <article class="card">
+        <p class="tag">sysadmin - intermediate</p>
+        <h2>Broken Container Startup Config</h2>
+        <p>A small containerized alert-router workload keeps restarting. Use Docker-style evidence to find the bad runtime setting, repair the container config, and verify the workload becomes healthy again.</p>
+        <p class="meta">Lesson: <a href="./docker-container-01.html">docker-container-01.html</a></p>
+      </article>
+    
+
+      <article class="card">
+        <p class="tag">sysadmin - advanced</p>
+        <h2>Final Exam - Multi-Layer Recovery</h2>
+        <p>A small internal ops portal is failing in several layers at once. You need to restore service health, restore the internal hostname, and repair one narrow sudo delegation needed for support work. This mission is meant to verify that you can isolate layers instead of treating the whole incident as one mystery.</p>
+        <p class="meta">Lesson: <a href="./final-exam-01.html">final-exam-01.html</a></p>
+      </article>
+    
+
+      <article class="card">
+        <p class="tag">sysadmin - intermediate</p>
+        <h2>Filesystem Full by Inodes</h2>
+        <p>A ticket spool looks full even though it barely uses any disk space. The real problem is inode pressure caused by too many tiny obsolete files. Prove that the filesystem is full by inodes, clean the right path safely, and verify health returns.</p>
+        <p class="meta">Lesson: <a href="./inode-pressure-01.html">inode-pressure-01.html</a></p>
       </article>
     
 
@@ -128,6 +168,22 @@
         <h2>Port Already in Use</h2>
         <p>A local API failed to come back after a test utility was left running on the same port. Prove that the problem is a listener conflict, identify the wrong process, free the port safely, and verify the real service is healthy again.</p>
         <p class="meta">Lesson: <a href="./port-conflict-01.html">port-conflict-01.html</a></p>
+      </article>
+    
+
+      <article class="card">
+        <p class="tag">sysadmin - intermediate</p>
+        <h2>Broken Service Environment File</h2>
+        <p>A service is failing even though the executable path is correct. The real problem lives in the environment file the unit loads at startup. Find the bad value, repair the env file, and prove the service becomes healthy.</p>
+        <p class="meta">Lesson: <a href="./service-envfile-01.html">service-envfile-01.html</a></p>
+      </article>
+    
+
+      <article class="card">
+        <p class="tag">sysadmin - intermediate</p>
+        <h2>Broken Limited Sudo Access</h2>
+        <p>A teammate account called auditor is supposed to run one approved maintenance command with sudo, but the delegation is broken. Prove why the rule fails, repair the sudoers entry safely, and verify the user can run only the intended command.</p>
+        <p class="meta">Lesson: <a href="./sudoers-01.html">sudoers-01.html</a></p>
       </article>
     
 

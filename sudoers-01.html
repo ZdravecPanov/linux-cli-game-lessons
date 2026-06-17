@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Broken Limited Sudo Access</title>
+  <style>
+    :root {
+      --bg: #f2eee9;
+      --paper: #fffdfa;
+      --ink: #1f2732;
+      --muted: #5d6977;
+      --line: #ddd4c9;
+      --code: #f2ede6;
+    }
+    body { margin: 0; background: linear-gradient(180deg, #ebe4da 0%, #f8f5ef 100%); color: var(--ink); font-family: "Segoe UI", Tahoma, sans-serif; }
+    main { max-width: 920px; margin: 0 auto; padding: 40px 24px 72px; }
+    h1 { font-size: 2.35rem; margin-bottom: 12px; }
+    h2 { margin-top: 34px; font-size: 1.3rem; }
+    p, li { line-height: 1.75; font-size: 1rem; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; box-shadow: 0 14px 28px rgba(40, 30, 20, 0.06); }
+    code, pre { font-family: Consolas, "Courier New", monospace; }
+    pre { background: var(--code); padding: 14px; border-radius: 12px; overflow: auto; }
+    .hero { max-width: 72ch; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Broken Limited Sudo Access</h1>
+    <p class="hero">This lesson is a practical guide to least-privilege sudo delegation. The goal is to understand how sudoers rules match users and commands exactly, why limited access can fail even when the intended command exists, and how to repair the rule without giving away broad admin power.</p>
+
+    <section class="card">
+      <h2>Situation</h2>
+      <p>An account named auditor is supposed to run one approved maintenance command with sudo, but the delegation is broken. Your job is to find the exact rule failure, repair it safely, and prove the user still has only narrow access.</p>
+    </section>
+
+    <section class="card">
+      <h2>Mission Goal</h2>
+      <ul>
+        <li>Prove the affected user cannot run the approved delegated command</li>
+        <li>Inspect the sudoers drop-in that owns the access rule</li>
+        <li>Fix the rule without granting broad sudo access</li>
+        <li>Validate the sudoers file and verify the limited command works</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Layer This Is</h2>
+      <p>This mission lives in the privilege-delegation layer. The important question is not "can someone become root somehow?" but "is the exact intended command delegated safely and correctly?"</p>
+    </section>
+
+    <section class="card">
+      <h2>What We Are Using and Why</h2>
+      <p>The main tools are <code>sudo -l</code>, sudoers drop-ins, filesystem inspection, and <code>visudo</code>.</p>
+      <ul>
+        <li><code>sudo -l -U &lt;user&gt;</code> helps show what a user is allowed to run</li>
+        <li>the sudoers drop-in contains the exact command delegation</li>
+        <li>filesystem inspection confirms the real command path on disk</li>
+        <li><code>visudo -cf</code> validates the sudoers file safely</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>How Sudoers Matching Really Works</h2>
+      <p>Sudo delegation is exact, not approximate.</p>
+      <ul>
+        <li>The user must match</li>
+        <li>The host context must match</li>
+        <li>The absolute command path must match</li>
+      </ul>
+      <p>If the sudoers file allows the wrong path, the user can still be blocked even though the intended command exists on disk. That is why comparing the delegated path with the real command path is such a strong troubleshooting move.</p>
+    </section>
+
+    <section class="card">
+      <h2>How To Use It in Practice</h2>
+      <p>A strong admin workflow here is:</p>
+      <ul>
+        <li>Test the problem from the affected user's point of view</li>
+        <li>Inspect the drop-in rule that owns the delegation</li>
+        <li>Compare the allowed command path with the real path on disk</li>
+        <li>Validate the file before and after the fix</li>
+        <li>Confirm the approved command works while broad sudo remains blocked</li>
+      </ul>
+      <p>What matters is the reasoning: repair the exact delegation layer, not the user's role in the whole system.</p>
+    </section>
+
+    <section class="card">
+      <h2>Choosing the Safest Fix</h2>
+      <p>The safest fix is the narrowest fix that restores the intended command and nothing more.</p>
+      <ul>
+        <li>If the rule points to the wrong command path, repair the path</li>
+        <li>If the file is invalid, validate and correct the sudoers syntax</li>
+        <li>Do not grant full sudo access when only one command needs delegation</li>
+      </ul>
+      <p>Strong administrators do not widen authority just because a least-privilege rule is temporarily broken.</p>
+    </section>
+
+    <section class="card">
+      <h2>What Good Evidence Looks Like</h2>
+      <ul>
+        <li>The failure is reproduced as the affected user</li>
+        <li>The drop-in rule is tied to the real delegated command path</li>
+        <li>The sudoers file validates cleanly after the fix</li>
+        <li>The approved command works, while broad sudo remains blocked</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Not To Do</h2>
+      <ul>
+        <li>Do not add the user to general sudo access just to "make it work"</li>
+        <li>Do not edit sudoers without validation</li>
+        <li>Do not stop after the approved command works unless you also verify least privilege is preserved</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Common Problems Administrators See</h2>
+      <ul>
+        <li>The rule allows the wrong absolute command path</li>
+        <li>The intended command exists, but sudoers references a typo or old path</li>
+        <li>The access is "fixed" by granting far too much privilege</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What You Should Learn From This Mission</h2>
+      <p>The real lesson is that sudo delegation is a precision tool. When limited access breaks, the right answer is usually to repair the exact rule, not to broaden privilege.</p>
+    </section>
+  </main>
+</body>
+</html>

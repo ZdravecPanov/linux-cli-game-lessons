@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cron Job Fails on Schedule</title>
+  <style>
+    :root {
+      --bg: #f3f0e7;
+      --paper: #fffdf8;
+      --ink: #202833;
+      --muted: #5f6b78;
+      --line: #ddd4c6;
+      --code: #f2ece1;
+    }
+    body { margin: 0; background: linear-gradient(180deg, #ece5d8 0%, #f8f5ef 100%); color: var(--ink); font-family: "Segoe UI", Tahoma, sans-serif; }
+    main { max-width: 920px; margin: 0 auto; padding: 40px 24px 72px; }
+    h1 { font-size: 2.35rem; margin-bottom: 12px; }
+    h2 { margin-top: 34px; font-size: 1.3rem; }
+    p, li { line-height: 1.75; font-size: 1rem; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; box-shadow: 0 14px 28px rgba(40, 30, 20, 0.06); }
+    code, pre { font-family: Consolas, "Courier New", monospace; }
+    pre { background: var(--code); padding: 14px; border-radius: 12px; overflow: auto; }
+    .hero { max-width: 72ch; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Cron Job Fails on Schedule</h1>
+    <p class="hero">This lesson is a practical guide to one of the most common Linux automation traps: a command works when you run it manually, but fails from cron. The goal is to understand why scheduled jobs have different execution conditions and how to prove the environment is the real failure layer.</p>
+
+    <section class="card">
+      <h2>Situation</h2>
+      <p>An internal report-digest task is scheduled to run automatically, but its scheduled run keeps failing. The worker script exists, yet the cron execution path is still broken. Your job is to identify why the schedule fails and restore a healthy scheduled run.</p>
+    </section>
+
+    <section class="card">
+      <h2>Mission Goal</h2>
+      <ul>
+        <li>Inspect the cron definition and the cron output first</li>
+        <li>Prove the worker exists and the failure belongs to the scheduled environment</li>
+        <li>Fix the cron job safely without rewriting the script logic</li>
+        <li>Verify the scheduled run succeeds afterward</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Layer This Is</h2>
+      <p>This mission lives in the automation and scheduled-operations layer. The core question is not "does the script exist?" but "under what environment does cron actually run it?"</p>
+    </section>
+
+    <section class="card">
+      <h2>What We Are Using and Why</h2>
+      <p>The main tools are the cron definition, the cron output log, filesystem inspection, and a scheduled-run simulation.</p>
+      <ul>
+        <li>the cron file shows the real scheduled command and environment</li>
+        <li>the cron log shows what happened when the scheduled run fired</li>
+        <li>filesystem inspection proves whether the worker exists and is executable</li>
+        <li>rerunning the scheduled path proves the fix works in cron conditions, not only in your shell</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>How Scheduled Jobs Differ From Your Shell</h2>
+      <p>Cron jobs usually run with a much smaller environment than an interactive shell. They may not load your shell profile, your aliases, or the same command search path.</p>
+      <ul>
+        <li>A command may work interactively because your shell knows where to find it</li>
+        <li>The same command may fail from cron because cron cannot resolve that command name</li>
+        <li>This often shows up as "command not found" even though the script exists on disk</li>
+      </ul>
+      <p>That is why scheduled-task troubleshooting is often really environment troubleshooting.</p>
+    </section>
+
+    <section class="card">
+      <h2>How To Use It in Practice</h2>
+      <p>A strong admin workflow here is:</p>
+      <ul>
+        <li>Read the cron definition first</li>
+        <li>Read the latest cron output before editing anything</li>
+        <li>Confirm the worker exists and is executable</li>
+        <li>Compare what cron can see with what your interactive shell can see</li>
+        <li>Fix the scheduled job definition and rerun the scheduled execution path</li>
+      </ul>
+      <p>What matters is the reasoning: prove the script is healthy, then prove cron is running it under broken conditions.</p>
+    </section>
+
+    <section class="card">
+      <h2>Choosing the Safest Fix</h2>
+      <p>The safest repair is the one that makes scheduled execution explicit.</p>
+      <ul>
+        <li>If cron cannot find the command, make the path explicit in the cron layer</li>
+        <li>If the script itself is healthy, do not rewrite it just to hide a scheduling problem</li>
+        <li>After the fix, rerun the scheduled path instead of only running the worker manually</li>
+      </ul>
+      <p>Good admins fix the job definition or execution environment first, because that is the layer that actually failed.</p>
+    </section>
+
+    <section class="card">
+      <h2>What Good Evidence Looks Like</h2>
+      <ul>
+        <li>The cron file is inspected before editing</li>
+        <li>The log shows a scheduled-environment failure, not a missing script on disk</li>
+        <li>The worker script is verified as present and executable</li>
+        <li>The scheduled run succeeds only after the cron definition is corrected</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Not To Do</h2>
+      <ul>
+        <li>Do not assume cron has the same <code>PATH</code> as your shell</li>
+        <li>Do not edit the worker script before proving the job definition is broken</li>
+        <li>Do not stop after a manual script run succeeds</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Common Problems Administrators See</h2>
+      <ul>
+        <li>The script exists, but cron cannot find it by command name</li>
+        <li>The scheduled environment is missing required variables or a usable PATH</li>
+        <li>The operator tests only interactively and misses the real scheduled failure path</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What You Should Learn From This Mission</h2>
+      <p>The real lesson is that scheduled-job incidents often come from execution context, not from script logic. When a cron job fails, ask what cron actually knew at runtime.</p>
+    </section>
+  </main>
+</body>
+</html>
