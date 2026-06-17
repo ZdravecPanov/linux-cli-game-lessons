@@ -10,7 +10,6 @@
       --paper: #fbfffe;
       --ink: #17313a;
       --muted: #58727a;
-      --accent: #1f7a6c;
       --line: #cfe1dc;
       --code: #edf6f4;
     }
@@ -29,6 +28,11 @@
   <main>
     <h1>Internal Name Resolution Failure</h1>
     <p class="hero">This lesson is a practical guide to separating service health from name resolution. The goal is to understand why an app can work by IP and still fail by hostname, and how an administrator narrows the failure to the resolver layer.</p>
+
+    <section class="card">
+      <h2>Situation</h2>
+      <p>An internal application is healthy when reached locally, but a teammate says the hostname does not work. Your task is to prove the application layer is fine, isolate the resolver problem, and restore the expected internal name.</p>
+    </section>
 
     <section class="card">
       <h2>Mission Goal</h2>
@@ -61,6 +65,17 @@
     </section>
 
     <section class="card">
+      <h2>How Name Resolution Is Evaluated</h2>
+      <p>When you reach a service by hostname, Linux does more than open a TCP connection. It first has to translate the name into an address through its resolver path.</p>
+      <ul>
+        <li>First: the system checks the configured name-resolution sources</li>
+        <li>Second: the hostname must resolve to the expected address</li>
+        <li>Third: only then can the client connect to the correct listener</li>
+      </ul>
+      <p>This is why comparing hostname behavior with IP behavior is so powerful. If IP works but the hostname fails, you have already removed a big part of the application stack from suspicion.</p>
+    </section>
+
+    <section class="card">
       <h2>How To Use It in Practice</h2>
       <p>A strong admin workflow here is:</p>
       <ul>
@@ -71,6 +86,17 @@
         <li>Fix only the resolution layer, then retest the hostname</li>
       </ul>
       <p>What matters is the reasoning: first prove the app, then prove the name is the problem.</p>
+    </section>
+
+    <section class="card">
+      <h2>Choosing the Safest Fix</h2>
+      <p>The safest fix is to restore the expected name-to-address mapping without touching the application unnecessarily.</p>
+      <ul>
+        <li>If the service is already healthy by IP, do not edit the app</li>
+        <li>If the hostname does not resolve, repair the local resolution layer</li>
+        <li>If it resolves to the wrong address, correct the mapping instead of changing the port or service</li>
+      </ul>
+      <p>The goal is to fix the narrowest failing layer. Good admins resist the urge to rebuild healthy layers just because the symptom appears at the client side.</p>
     </section>
 
     <section class="card">

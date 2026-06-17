@@ -6,20 +6,19 @@
   <title>Find Failure in the Journal</title>
   <style>
     :root {
-      --bg: #edf3f1;
-      --paper: #fcfefd;
-      --ink: #172229;
-      --muted: #57686c;
-      --accent: #35656f;
-      --line: #d5dede;
-      --code: #eaf1f1;
+      --bg: #f0f4f6;
+      --paper: #fbfdff;
+      --ink: #172833;
+      --muted: #5b6c77;
+      --line: #d4dde3;
+      --code: #eef4f7;
     }
-    body { margin: 0; background: radial-gradient(circle at top left, #dbeaea, #f5f8f7 58%); color: var(--ink); font-family: "Segoe UI", Tahoma, sans-serif; }
+    body { margin: 0; background: linear-gradient(180deg, #e7eff4 0%, #f8fbfd 100%); color: var(--ink); font-family: "Segoe UI", Tahoma, sans-serif; }
     main { max-width: 920px; margin: 0 auto; padding: 40px 24px 72px; }
-    h1 { font-size: 2.4rem; margin-bottom: 12px; }
+    h1 { font-size: 2.35rem; margin-bottom: 12px; }
     h2 { margin-top: 34px; font-size: 1.3rem; }
     p, li { line-height: 1.75; font-size: 1rem; }
-    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; box-shadow: 0 14px 28px rgba(24, 34, 41, 0.06); }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; box-shadow: 0 14px 28px rgba(20, 30, 40, 0.06); }
     code, pre { font-family: Consolas, "Courier New", monospace; }
     pre { background: var(--code); padding: 14px; border-radius: 12px; overflow: auto; }
     .hero { max-width: 72ch; color: var(--muted); }
@@ -28,112 +27,109 @@
 <body>
   <main>
     <h1>Find Failure in the Journal</h1>
-    <p class="hero">This lesson is a small practical guide to service troubleshooting with <code>systemctl</code> and <code>journalctl</code>. The goal is not only to pass the mission, but to understand how an administrator narrows a failing service from "it is down" to one precise startup problem.</p>
+    <p class="hero">This lesson is a practical guide to reading service evidence from the journal. The goal is to understand why <code>systemctl status</code> and <code>journalctl</code> answer different questions, and how to use both to isolate a startup blocker quickly.</p>
+
+    <section class="card">
+      <h2>Situation</h2>
+      <p>A metrics forwarder stopped after a cleanup action. The service manager confirms failure, but the real reason is hidden in the journal. You need to find the startup blocker, repair it, and verify the unit is healthy again.</p>
+    </section>
 
     <section class="card">
       <h2>Mission Goal</h2>
       <ul>
-        <li>Confirm that the service is really failing</li>
-        <li>Use the journal to find the exact startup complaint</li>
-        <li>Repair only the missing dependency the service actually needs</li>
-        <li>Restart and prove the service is healthy again</li>
+        <li>Confirm the service is failing before changing anything</li>
+        <li>Use <code>journalctl</code> to find the specific startup error</li>
+        <li>Repair the missing dependency and prove the service is healthy again</li>
       </ul>
     </section>
 
     <section class="card">
       <h2>What Layer This Is</h2>
-      <p>This mission lives in the service-management and operating-system troubleshooting layer. The application itself is not your first concern here. Your first concern is the service lifecycle around it:</p>
-      <ul>
-        <li>Did the unit start or fail?</li>
-        <li>What does the service manager know about the failure?</li>
-        <li>What does the service itself say in its logs?</li>
-        <li>Is the missing piece a path, directory, permission, config value, or dependency?</li>
-      </ul>
-      <p>That is classic sysadmin work. Before changing application code, you prove whether the failure is actually in the runtime environment around the service.</p>
+      <p>This mission lives in the service-observability layer. The service manager can tell you that a unit failed, but the journal often tells you why it failed and which runtime dependency actually broke.</p>
     </section>
 
     <section class="card">
       <h2>What We Are Using and Why</h2>
-      <p><code>systemctl</code> and <code>journalctl</code> are two of the most important day-to-day tools on a Linux system that uses systemd.</p>
+      <p>The main tools are <code>systemctl status</code>, <code>journalctl</code>, filesystem inspection, and a post-fix health check.</p>
       <ul>
-        <li><code>systemctl</code> is used to inspect and control services</li>
-        <li><code>journalctl</code> is used to read the service journal and see what the service reported during startup or failure</li>
-      </ul>
-      <p>An administrator uses them together because they answer different questions:</p>
-      <ul>
-        <li><code>systemctl status</code> answers: "Is this unit active, failed, or inactive?"</li>
-        <li><code>journalctl -u ...</code> answers: "What exactly happened when it tried to start?"</li>
+        <li><code>systemctl status</code> shows the unit state and high-level failure context</li>
+        <li><code>journalctl -u ...</code> shows the unit's recent log lines in sequence</li>
+        <li>filesystem inspection helps confirm whether the missing path or dependency is real</li>
+        <li>the health check proves the service recovered after the repair</li>
       </ul>
     </section>
 
     <section class="card">
       <h2>How It Works in Real Operations</h2>
-      <p>When a service fails, the service manager often shows only the state and a limited failure summary. That is useful, but not always enough. The journal is where you usually find the higher-signal clue: the exact file, path, directory, dependency, or permission that blocked startup.</p>
-      <p>This is why experienced administrators usually do not jump straight to restart loops. A better order is:</p>
-      <ol>
-        <li>Confirm the unit is actually failed</li>
-        <li>Read the recent journal lines for that unit</li>
-        <li>Identify the exact complaint</li>
-        <li>Verify the complaint on disk or in config</li>
-        <li>Repair only that layer</li>
-        <li>Restart and validate</li>
-      </ol>
+      <p>Many service failures are not obvious from status alone. The unit may simply show "failed" while the real story is a missing directory, bad dependency, permission issue, or invalid runtime path buried in the service's own output.</p>
+      <p>That is why experienced admins read both state and evidence: status narrows the unit, journal narrows the cause.</p>
+    </section>
+
+    <section class="card">
+      <h2>How the Journal Changes the Investigation</h2>
+      <p>The journal is where a generic failure often becomes a concrete one.</p>
+      <ul>
+        <li>Status may say the unit failed</li>
+        <li>The journal may say a directory is missing, a path is unreadable, or a dependency could not be opened</li>
+      </ul>
+      <p>That difference is critical. Without the journal, you are guessing. With the journal, you can often point to one missing runtime dependency and ignore ten unrelated possibilities.</p>
     </section>
 
     <section class="card">
       <h2>How To Use It in Practice</h2>
       <p>A strong admin workflow here is:</p>
       <ul>
-        <li>Start by confirming that the unit is actually failing, not only "reported broken" by a teammate</li>
-        <li>Read the recent journal lines for that unit and look for the most concrete startup complaint</li>
-        <li>Take the path, directory, or dependency mentioned in the log and verify whether it really exists on disk</li>
-        <li>Repair only the missing dependency the service is complaining about</li>
-        <li>Restart the unit and check whether its state changed from failed to active</li>
-        <li>Run a final service or health validation so you prove the service is usable, not only restarted</li>
+        <li>Confirm the service is really failed</li>
+        <li>Read the most recent journal lines for the unit</li>
+        <li>Translate the error into a concrete filesystem or runtime check</li>
+        <li>Repair only the dependency the logs point to</li>
+        <li>Restart and verify both service state and health output</li>
       </ul>
-      <p>What matters is the reasoning: confirm failure, read the service's own words, verify the missing piece, repair that exact layer, then validate the result.</p>
+      <p>What matters is the reasoning: let the journal narrow the repair target before you change anything.</p>
+    </section>
+
+    <section class="card">
+      <h2>Choosing the Safest Fix</h2>
+      <p>The safest fix is to repair the exact blocker the journal describes, not to rewrite the whole service environment.</p>
+      <ul>
+        <li>If the logs point to a missing directory, prove it and restore only that directory</li>
+        <li>If they point to permissions, verify the path and ownership before changing modes broadly</li>
+        <li>After the repair, recheck both the unit state and the service health path</li>
+      </ul>
+      <p>This keeps the repair small, explainable, and easy to verify.</p>
     </section>
 
     <section class="card">
       <h2>What Good Evidence Looks Like</h2>
       <ul>
-        <li>The unit state is clearly failed before you attempt a fix</li>
-        <li>The journal shows a concrete startup complaint, not only a generic failure state</li>
-        <li>The complaint points to a real missing path or dependency you can verify on disk</li>
-        <li>The service becomes active only after that exact dependency is restored</li>
+        <li>The unit state is confirmed before edits begin</li>
+        <li>The journal points to one concrete startup blocker</li>
+        <li>The missing path or dependency is verified on disk</li>
+        <li>The service is healthy only after that blocker is repaired</li>
       </ul>
     </section>
 
     <section class="card">
       <h2>What Not To Do</h2>
       <ul>
-        <li>Do not restart the unit repeatedly before reading the journal</li>
-        <li>Do not create random directories just because the service failed</li>
-        <li>Do not edit unrelated config or binaries before proving what the service is missing</li>
+        <li>Do not restart repeatedly without reading the logs</li>
+        <li>Do not assume the unit file itself is wrong before checking runtime evidence</li>
+        <li>Do not stop after restart without verifying a healthy state</li>
       </ul>
     </section>
 
     <section class="card">
       <h2>Common Problems Administrators See</h2>
       <ul>
-        <li>A cleanup job removes a runtime directory the service expects</li>
-        <li>A service fails because a mount, path, or socket does not exist</li>
-        <li>The operator keeps restarting the unit without reading the journal</li>
-        <li>The service manager only says "failed", while the journal contains the real root cause</li>
+        <li>The unit state is visible, but the real blocker is a missing directory or path</li>
+        <li>The operator reads only status and misses the key journal line</li>
+        <li>The service starts after a fix, but nobody verifies the health path</li>
       </ul>
-      <p>In practice, many outages look "application-like" at first, but are actually environment problems around the service.</p>
     </section>
 
     <section class="card">
       <h2>What You Should Learn From This Mission</h2>
-      <p>The real lesson is not only "use <code>journalctl</code>". The real lesson is to troubleshoot in layers:</p>
-      <ul>
-        <li>service state first</li>
-        <li>service logs second</li>
-        <li>filesystem or config verification third</li>
-        <li>repair only after the evidence is clear</li>
-      </ul>
-      <p>This is the habit that keeps you from making random fixes under pressure.</p>
+      <p>The real lesson is that status answers "what state is the unit in?" while the journal often answers "what exactly broke?" Good troubleshooting needs both.</p>
     </section>
   </main>
 </body>

@@ -10,7 +10,6 @@
       --paper: #fffdf8;
       --ink: #1f2933;
       --muted: #556170;
-      --accent: #1d6b57;
       --line: #d9d1c3;
       --code: #f0ece3;
     }
@@ -29,6 +28,11 @@
   <main>
     <h1>Shared Directory Lockout</h1>
     <p class="lead">This lesson is a small practical guide to Linux directory permissions. The goal is to understand why a directory can look writable and still fail, how parent traversal works, and how an administrator proves the failing layer before changing permissions.</p>
+
+    <section class="card">
+      <h2>Situation</h2>
+      <p>A teammate cannot create a file inside a shared operations directory. Your job is to prove whether the real failure comes from ownership, group membership, directory traversal, or write permission before you make any change.</p>
+    </section>
 
     <section class="card">
       <h2>Mission Goal</h2>
@@ -68,6 +72,29 @@
     </section>
 
     <section class="card">
+      <h2>How Linux Evaluates Directory Access</h2>
+      <p>When Linux decides whether a user can create a file in a directory, it does not ask only one question. It checks several layers in order.</p>
+      <ul>
+        <li>First: who is the user right now</li>
+        <li>Second: is that user the owner, a member of the directory's group, or only part of "others"</li>
+        <li>Third: can that identity traverse every parent directory in the path</li>
+        <li>Fourth: does the final directory allow the needed write and execute access</li>
+      </ul>
+      <p>This is why shared-directory problems often confuse people. They look at the final target, see group write, and assume everything should work. But Linux may already have rejected the request one directory earlier because the user cannot traverse into that parent path element.</p>
+    </section>
+
+    <section class="card">
+      <h2>Why This Fails in Real Life</h2>
+      <p>This kind of issue is common in teams because shared directories are usually built in layers. One admin creates the top-level path, another creates the working directory, and later someone changes permissions quickly during an incident.</p>
+      <ul>
+        <li>The user is in the correct group, but one parent directory is missing execute permission</li>
+        <li>The target directory itself is fine, but the path to it is not</li>
+        <li>A broad fix like <code>chmod 777</code> makes the symptom disappear, but destroys the intended security model</li>
+      </ul>
+      <p>A good administrator learns to treat <code>Permission denied</code> as a path problem, an identity problem, or a final-target problem, then prove which one it is.</p>
+    </section>
+
+    <section class="card">
       <h2>How To Use It in Practice</h2>
       <p>A strong admin workflow here is:</p>
       <ul>
@@ -78,6 +105,18 @@
         <li>Repair only the permission model needed for the intended shared access</li>
       </ul>
       <p>What matters is the reasoning: identify the actor, inspect the path, isolate the failing layer, then fix only that layer.</p>
+    </section>
+
+    <section class="card">
+      <h2>Choosing the Safest Fix</h2>
+      <p>In real administration work, the best fix is usually the smallest fix that restores the intended access model.</p>
+      <ul>
+        <li>If the wrong user owns the path, ownership may be the issue</li>
+        <li>If the user is missing from the intended shared group, group membership may be the issue</li>
+        <li>If the user is in the right group but cannot traverse the path, mode bits on a parent directory may be the issue</li>
+        <li>If a shared directory should keep new files under one common group, <code>setgid</code> on that directory is often part of the right design</li>
+      </ul>
+      <p>The point is not to memorize one magic command. The point is to match the fix to the proven layer. That is what separates a safe admin fix from a risky one.</p>
     </section>
 
     <section class="card">
@@ -110,7 +149,7 @@
 
     <section class="card">
       <h2>What You Should Learn From This Mission</h2>
-      <p>The real lesson is to ask a better operational question. Not only “what are the permissions on the target?” but “can this exact identity traverse every parent and write at the final layer?”</p>
+      <p>The real lesson is to ask a better operational question. Not only "what are the permissions on the target?" but "can this exact identity traverse every parent and write at the final layer?"</p>
     </section>
   </main>
 </body>

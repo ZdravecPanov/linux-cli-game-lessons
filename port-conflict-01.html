@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Port Already in Use</title>
+  <style>
+    :root {
+      --bg: #eef0f6;
+      --paper: #fcfdff;
+      --ink: #182338;
+      --muted: #5b6578;
+      --line: #d5d9e7;
+      --code: #eef2fa;
+    }
+    body { margin: 0; background: radial-gradient(circle at top left, #dfe4f5, #f7f8fc 58%); color: var(--ink); font-family: "Segoe UI", Tahoma, sans-serif; }
+    main { max-width: 920px; margin: 0 auto; padding: 40px 24px 72px; }
+    h1 { font-size: 2.35rem; margin-bottom: 12px; }
+    h2 { margin-top: 34px; font-size: 1.3rem; }
+    p, li { line-height: 1.75; font-size: 1rem; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; box-shadow: 0 14px 28px rgba(24, 35, 56, 0.06); }
+    code, pre { font-family: Consolas, "Courier New", monospace; }
+    pre { background: var(--code); padding: 14px; border-radius: 12px; overflow: auto; }
+    .hero { max-width: 72ch; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Port Already in Use</h1>
+    <p class="hero">This lesson is a practical guide to listener conflicts. The goal is to understand how administrators prove a bind failure, identify which process owns the port, and restore the intended service without killing the wrong process.</p>
+
+    <section class="card">
+      <h2>Situation</h2>
+      <p>An internal API should listen on a known port, but another process is already sitting on that listener. You need to prove the port conflict, identify the wrong process safely, and return the port to the intended service.</p>
+    </section>
+
+    <section class="card">
+      <h2>Mission Goal</h2>
+      <ul>
+        <li>Prove the intended service is blocked by a listener conflict</li>
+        <li>Identify the process that currently owns the port</li>
+        <li>Stop only the conflicting process</li>
+        <li>Verify the intended service reclaims the port and serves healthy traffic</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Layer This Is</h2>
+      <p>This mission lives in the process, socket, and service-startup layer. The issue is not necessarily the service config itself. The issue may simply be that the required address and port are already occupied by something else.</p>
+    </section>
+
+    <section class="card">
+      <h2>What We Are Using and Why</h2>
+      <p>The main tools are <code>ss</code>, <code>ps</code>, <code>systemctl</code>, and a final health check.</p>
+      <ul>
+        <li><code>ss -lntp</code> shows which process owns the listening socket</li>
+        <li><code>ps -fp &lt;pid&gt;</code> helps confirm what that process actually is</li>
+        <li><code>systemctl</code> lets you verify and restart the intended service</li>
+        <li>the health check proves the right service is now serving on the port</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>How It Works in Real Operations</h2>
+      <p>A service can fail to start because the port it needs is already occupied. In real environments this often happens after a debug utility, test process, leftover helper, or duplicate service instance keeps the listener open.</p>
+      <p>The dangerous mistake is to kill processes before proving who owns the port. Good admins identify the listener first, then confirm whether that process is actually the intended service.</p>
+    </section>
+
+    <section class="card">
+      <h2>How Port Conflicts Really Work</h2>
+      <p>A port conflict is not automatically an application bug. Often it is simply resource contention at the socket layer.</p>
+      <ul>
+        <li>One process already owns the address and port</li>
+        <li>The intended service tries to bind and fails</li>
+        <li>The service symptom appears later, but the cause started at the listener</li>
+      </ul>
+      <p>That is why identifying the socket owner is such a high-signal move. It tells you whether the problem is the target service itself or something unrelated that got there first.</p>
+    </section>
+
+    <section class="card">
+      <h2>How To Use It in Practice</h2>
+      <p>A strong admin workflow here is:</p>
+      <ul>
+        <li>Confirm the intended service is failing or not listening as expected</li>
+        <li>Inspect the port and identify which PID owns the listener</li>
+        <li>Verify the process identity before stopping it</li>
+        <li>Free the port only after you know the conflicting process is the wrong one</li>
+        <li>Restart the intended service and validate the health endpoint</li>
+      </ul>
+      <p>What matters is the reasoning: prove the socket owner, verify the process, then repair the conflict with minimal collateral damage.</p>
+    </section>
+
+    <section class="card">
+      <h2>Choosing the Safest Fix</h2>
+      <p>The safest fix is to remove only the process that does not belong on the port.</p>
+      <ul>
+        <li>If the conflicting PID is the intended service, keep investigating instead of killing blindly</li>
+        <li>If the conflicting PID is a helper, stray process, or duplicate instance, remove only that process</li>
+        <li>After freeing the port, verify the intended service really owns it and serves traffic correctly</li>
+      </ul>
+      <p>Strong admins do not treat <code>kill</code> as the solution. They treat it as one small step inside a proven listener-recovery workflow.</p>
+    </section>
+
+    <section class="card">
+      <h2>What Good Evidence Looks Like</h2>
+      <ul>
+        <li>The listener conflict is proven before any process is killed</li>
+        <li>The conflicting PID is tied to a specific helper or stray process</li>
+        <li>The intended service owns the port only after the conflict is removed</li>
+        <li>The health endpoint works after the service restarts</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Not To Do</h2>
+      <ul>
+        <li>Do not restart the service repeatedly without checking the port</li>
+        <li>Do not kill processes before confirming which one owns the listener</li>
+        <li>Do not stop after the port opens without testing the endpoint</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Common Problems Administrators See</h2>
+      <ul>
+        <li>A test utility was left running on the same port</li>
+        <li>A duplicate service instance is already bound to the address</li>
+        <li>The operator frees the port but never verifies the real service is healthy afterward</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What You Should Learn From This Mission</h2>
+      <p>The real lesson is that a port conflict is an evidence problem, not a killing problem. Strong administrators prove the listener owner first and stop only the process that does not belong there.</p>
+    </section>
+  </main>
+</body>
+</html>

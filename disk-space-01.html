@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Filesystem Running Out of Space</title>
+  <style>
+    :root {
+      --bg: #f2eee5;
+      --paper: #fffdf8;
+      --ink: #1e2732;
+      --muted: #5a6674;
+      --line: #ddd2c0;
+      --code: #f3ede3;
+    }
+    body { margin: 0; background: radial-gradient(circle at top left, #e7dcc8, #f7f4ee 60%); color: var(--ink); font-family: "Segoe UI", Tahoma, sans-serif; }
+    main { max-width: 920px; margin: 0 auto; padding: 40px 24px 72px; }
+    h1 { font-size: 2.35rem; margin-bottom: 12px; }
+    h2 { margin-top: 34px; font-size: 1.3rem; }
+    p, li { line-height: 1.75; font-size: 1rem; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; box-shadow: 0 14px 28px rgba(40, 30, 20, 0.06); }
+    code, pre { font-family: Consolas, "Courier New", monospace; }
+    pre { background: var(--code); padding: 14px; border-radius: 12px; overflow: auto; }
+    .hero { max-width: 72ch; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Filesystem Running Out of Space</h1>
+    <p class="hero">This lesson is a practical guide to disk-pressure troubleshooting. The goal is to understand how administrators prove which volume is under pressure, isolate the biggest safe cleanup target, and free space without deleting live data.</p>
+
+    <section class="card">
+      <h2>Situation</h2>
+      <p>An operations volume is under pressure and something large needs to be cleaned up safely. Your task is to prove where the space is going, identify the biggest obsolete target, and restore healthy free space without touching live data.</p>
+    </section>
+
+    <section class="card">
+      <h2>Mission Goal</h2>
+      <ul>
+        <li>Confirm the target volume is actually under pressure</li>
+        <li>Find the largest safe cleanup target with evidence</li>
+        <li>Remove obsolete data without damaging live files</li>
+        <li>Verify the volume health check passes again</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Layer This Is</h2>
+      <p>This mission lives in the storage and filesystem-operations layer. The key question is not only "what is big?" but "what is safe to delete while the system stays usable?"</p>
+    </section>
+
+    <section class="card">
+      <h2>What We Are Using and Why</h2>
+      <p>The main tools are <code>df</code>, <code>du</code>, <code>find</code>, and a post-cleanup health check.</p>
+      <ul>
+        <li><code>df</code> shows whether a filesystem or mount point is actually near full</li>
+        <li><code>du</code> shows which directories consume the most space</li>
+        <li><code>find</code> helps isolate large files</li>
+        <li>the health check proves the cleanup restored usable capacity without harming live data</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>How It Works in Real Operations</h2>
+      <p>Disk alerts are dangerous because rushed cleanup often causes a second incident. Good admins do not start deleting randomly. They first confirm the pressured volume, then compare directory sizes, then identify the largest obsolete target, and only then clean up.</p>
+    </section>
+
+    <section class="card">
+      <h2>How Storage Pressure Should Be Read</h2>
+      <p>Disk pressure is not one question. It is at least three separate questions.</p>
+      <ul>
+        <li>Which filesystem is actually under pressure</li>
+        <li>Which path inside it is the heaviest</li>
+        <li>Which part of that path is safe to remove</li>
+      </ul>
+      <p>Many bad cleanup decisions happen because someone jumps from "space is low" straight to deletion without answering all three.</p>
+    </section>
+
+    <section class="card">
+      <h2>How To Use It in Practice</h2>
+      <p>A strong admin workflow here is:</p>
+      <ul>
+        <li>Confirm which volume or path is under pressure</li>
+        <li>Compare the largest directories under that volume</li>
+        <li>Identify specific large files inside the heaviest path</li>
+        <li>Decide which data is obsolete and which data is still live</li>
+        <li>Remove only the obsolete space consumer and rerun the health check</li>
+      </ul>
+      <p>What matters is the reasoning: confirm pressure, isolate the heavy path, verify the deletion target is safe, then clean up and validate.</p>
+    </section>
+
+    <section class="card">
+      <h2>Choosing the Safest Fix</h2>
+      <p>The safest cleanup target is the one that is both large and obsolete.</p>
+      <ul>
+        <li>If something is large but still live, it is not the right cleanup target</li>
+        <li>If something is obsolete but tiny, it may not solve the incident</li>
+        <li>The best target is where size evidence and operational safety overlap</li>
+      </ul>
+      <p>This is why good disk work is evidence-driven. You are not trying to delete something. You are trying to restore free space without creating a second outage.</p>
+    </section>
+
+    <section class="card">
+      <h2>What Good Evidence Looks Like</h2>
+      <ul>
+        <li>The target volume is proven to be near full before cleanup starts</li>
+        <li>Directory or file-size evidence points clearly to the heaviest path</li>
+        <li>The deleted item is obsolete, while live data remains intact</li>
+        <li>The health check passes only after safe cleanup</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What Not To Do</h2>
+      <ul>
+        <li>Do not delete files before proving where the pressure is</li>
+        <li>Do not remove current live data just because it is large</li>
+        <li>Do not stop after deletion without rerunning the health check</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Common Problems Administrators See</h2>
+      <ul>
+        <li>Old archives consume more space than the active workload</li>
+        <li>Disk pressure is misdiagnosed because only one directory is inspected</li>
+        <li>Cleanup fixes the alert but breaks the service because live data was removed</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What You Should Learn From This Mission</h2>
+      <p>The real lesson is that disk cleanup is an evidence problem, not just a deletion problem. Strong administrators prove where the pressure is and what is safe before they remove anything.</p>
+    </section>
+  </main>
+</body>
+</html>

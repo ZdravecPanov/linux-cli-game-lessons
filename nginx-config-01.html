@@ -10,7 +10,6 @@
       --paper: #fffefa;
       --ink: #18222d;
       --muted: #586575;
-      --accent: #9b5b2f;
       --line: #ddd5c8;
       --code: #f3eee5;
     }
@@ -29,6 +28,11 @@
   <main>
     <h1>Broken Nginx Site Config</h1>
     <p class="hero">This lesson is a practical guide to config-driven web service troubleshooting. The goal is to understand what Nginx is responsible for, why config validation comes first, and how to separate syntax, listener state, and HTTP behavior.</p>
+
+    <section class="card">
+      <h2>Situation</h2>
+      <p>An internal site is not serving traffic correctly. You need to determine whether the problem begins in Nginx configuration, then prove the service listens and returns the expected page after the fix.</p>
+    </section>
 
     <section class="card">
       <h2>Mission Goal</h2>
@@ -68,6 +72,18 @@
     </section>
 
     <section class="card">
+      <h2>How Nginx Thinks About a Request</h2>
+      <p>Nginx has to survive several layers before a user ever sees a working page.</p>
+      <ul>
+        <li>First: the configuration must parse successfully</li>
+        <li>Second: the service must start and bind to the expected address and port</li>
+        <li>Third: a matching server block must answer the request</li>
+        <li>Fourth: the requested content must exist and be returned correctly</li>
+      </ul>
+      <p>That is why good troubleshooting here is layered. A syntax error is different from a listener problem, and a listener problem is different from a wrong HTTP response.</p>
+    </section>
+
+    <section class="card">
       <h2>How To Use It in Practice</h2>
       <p>A strong admin workflow here is:</p>
       <ul>
@@ -78,6 +94,17 @@
         <li>Run a final HTTP test so you prove the service is usable</li>
       </ul>
       <p>What matters is the reasoning: syntax first, listener second, endpoint third.</p>
+    </section>
+
+    <section class="card">
+      <h2>Choosing the Safest Fix</h2>
+      <p>The safest repair is the smallest change that matches the exact failure you proved.</p>
+      <ul>
+        <li>If <code>nginx -t</code> points to one syntax problem, fix that exact directive first</li>
+        <li>If syntax is valid but the port is missing, investigate service state or binding next</li>
+        <li>If the port is open but the page is wrong, move up to HTTP behavior rather than re-editing syntax blindly</li>
+      </ul>
+      <p>A strong admin does not mix all layers together. They restore one broken layer at a time and verify after each step.</p>
     </section>
 
     <section class="card">
@@ -110,7 +137,7 @@
 
     <section class="card">
       <h2>What You Should Learn From This Mission</h2>
-      <p>The real lesson is to separate “config valid”, “service listening”, and “endpoint healthy”. They sound similar under pressure, but they are not the same thing operationally.</p>
+      <p>The real lesson is to separate "config valid", "service listening", and "endpoint healthy". They sound similar under pressure, but they are not the same thing operationally.</p>
     </section>
   </main>
 </body>

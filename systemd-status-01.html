@@ -10,7 +10,6 @@
       --paper: #fcfdf8;
       --ink: #172028;
       --muted: #5c6a63;
-      --accent: #3f6b47;
       --line: #d7ddd0;
       --code: #edf2e6;
     }
@@ -29,6 +28,11 @@
   <main>
     <h1>Service Fails to Start</h1>
     <p class="hero">This lesson is a practical guide to reading service state through systemd. The goal is to understand what <code>systemctl status</code> really shows, how the <code>ExecStart</code> path helps narrow the failure, and when elevated privileges are needed for the repair.</p>
+
+    <section class="card">
+      <h2>Situation</h2>
+      <p>A managed service refuses to start and operations only know that it keeps failing. Your task is to use systemd status output to identify the blocked startup path, repair the real filesystem issue, and prove the unit is healthy again.</p>
+    </section>
 
     <section class="card">
       <h2>Mission Goal</h2>
@@ -63,6 +67,17 @@
     </section>
 
     <section class="card">
+      <h2>How systemd Helps You Think</h2>
+      <p><code>systemctl status</code> is useful because it combines several layers of evidence in one place.</p>
+      <ul>
+        <li>It tells you whether the unit is active, failed, or inactive</li>
+        <li>It shows the command systemd tried to run</li>
+        <li>It exposes the most recent execution result</li>
+      </ul>
+      <p>That means you are not starting from zero. You already know whether the problem looks like a missing file, a non-executable file, a bad path, or a failed runtime check.</p>
+    </section>
+
+    <section class="card">
       <h2>How To Use It in Practice</h2>
       <p>A strong admin workflow here is:</p>
       <ul>
@@ -73,6 +88,17 @@
         <li>Restart the unit and verify the state changed to active</li>
       </ul>
       <p>What matters is the reasoning: read the service manager first, then inspect the exact object it points to.</p>
+    </section>
+
+    <section class="card">
+      <h2>Choosing the Safest Fix</h2>
+      <p>The safest repair is the one that matches the exact startup blocker systemd is already pointing at.</p>
+      <ul>
+        <li>If the path is wrong, fix the path layer</li>
+        <li>If the file exists but is not executable, repair only the execute condition</li>
+        <li>If the service starts afterward, confirm active state and health before touching anything else</li>
+      </ul>
+      <p>Good administrators avoid turning one clear failure into multiple speculative changes.</p>
     </section>
 
     <section class="card">

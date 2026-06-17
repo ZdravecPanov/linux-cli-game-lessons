@@ -10,7 +10,6 @@
       --paper: #fffefe;
       --ink: #241c3a;
       --muted: #645c78;
-      --accent: #7d52b9;
       --line: #ddd7ea;
       --code: #f3effb;
     }
@@ -31,6 +30,11 @@
     <p class="hero">This lesson is a practical guide to using logs as your shortest path from a vague application symptom to one exact broken config value. The goal is to learn how logs reduce guessing and keep your fix small and evidence-based.</p>
 
     <section class="card">
+      <h2>Situation</h2>
+      <p>A lightweight internal reporting app keeps failing its startup check, and the only clue you are given is that "the app is broken again." You need to read the log, isolate the bad config value, and prove the check becomes healthy after the repair.</p>
+    </section>
+
+    <section class="card">
       <h2>Mission Goal</h2>
       <ul>
         <li>Read the current failure from the log before editing config</li>
@@ -42,7 +46,7 @@
 
     <section class="card">
       <h2>What Layer This Is</h2>
-      <p>This mission lives in the application startup and logging layer. The main question is not “is the app down?” but “what exact input caused the startup path to fail?”</p>
+      <p>This mission lives in the application startup and logging layer. The main question is not "is the app down?" but "what exact input caused the startup path to fail?"</p>
     </section>
 
     <section class="card">
@@ -58,7 +62,18 @@
 
     <section class="card">
       <h2>How It Works in Real Operations</h2>
-      <p>Many outages are not generic “service down” incidents. They are specific input failures: bad ports, wrong paths, invalid values, unreadable files, or missing dependencies. The log is often the fastest way to narrow that down to one exact cause.</p>
+      <p>Many outages are not generic "service down" incidents. They are specific input failures: bad ports, wrong paths, invalid values, unreadable files, or missing dependencies. The log is often the fastest way to narrow that down to one exact cause.</p>
+    </section>
+
+    <section class="card">
+      <h2>How Logs Reduce the Search Space</h2>
+      <p>A good log line turns a vague symptom into a much smaller investigation.</p>
+      <ul>
+        <li>"The app is broken" is only a symptom</li>
+        <li>"Invalid port value" is a failing parameter</li>
+        <li>"Failed to open file" is a failing dependency</li>
+      </ul>
+      <p>That difference matters. Strong administrators look for the most specific failing fact first, because that tells them where to inspect next and what not to touch.</p>
     </section>
 
     <section class="card">
@@ -72,6 +87,17 @@
         <li>Rerun the same startup check and verify the new log result</li>
       </ul>
       <p>What matters is the reasoning: use the log to shrink the search space, then rerun the same failing path after the fix.</p>
+    </section>
+
+    <section class="card">
+      <h2>Choosing the Safest Fix</h2>
+      <p>The safest repair is the smallest config change that directly matches the log evidence.</p>
+      <ul>
+        <li>If one parameter is wrong, fix that one parameter first</li>
+        <li>If the log points to a path or value type, verify that exact input before changing others</li>
+        <li>After the repair, rerun the same startup path instead of assuming the app is healthy</li>
+      </ul>
+      <p>This habit keeps recovery precise and prevents "I changed three things and one of them worked" troubleshooting.</p>
     </section>
 
     <section class="card">
